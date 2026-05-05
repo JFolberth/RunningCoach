@@ -101,7 +101,8 @@ fitbit-data/
 ├── requirements.txt
 ├── README.md
 ├── docs/
-│   └── architecture.md      # Detailed architecture documentation
+│   ├── architecture.md      # Detailed architecture documentation
+│   └── data-model.md        # SQLite schema reference
 ├── core/                    # Data acquisition and caching
 │   ├── auth.py              # OAuth 2.0 PKCE authentication
 │   ├── fitbit_client.py     # Fitbit Web API client
@@ -117,7 +118,9 @@ fitbit-data/
 │   └── dashboard.py         # HTML dashboard with Chart.js
 ├── reports/                 # Generated reports (gitignored)
 └── .github/
-    └── copilot-instructions.md
+    ├── copilot-instructions.md
+    └── agents/
+        └── confidence-agent.agent.md
 ```
 
 ## Data Collected

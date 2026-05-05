@@ -1,6 +1,6 @@
-# Fitbit Half Marathon Training Tool — Architecture
+# Fitbit Race Training Tool — Architecture
 
-A personal fitness analysis tool that pulls data from the Fitbit Web API, enriches it with weather and location context, caches everything locally in SQLite, and produces training plans, dashboards, and reports for Lincoln Half Marathon preparation (May 3, 2026).
+A personal fitness analysis tool that pulls data from the Fitbit Web API, enriches it with weather and location context, caches everything locally in SQLite, and produces training plans, dashboards, and reports for any user-configured race goal.
 
 ---
 
@@ -60,7 +60,7 @@ graph LR
     end
 
     subgraph "analysis/ — Metrics & Planning"
-        Analyzer["analyzer.py<br/>Running, Rowing, HR Zones,<br/>VO2 Max, Sleep, Body,<br/>Pace, Mile Splits"]
+        Analyzer["analyzer.py<br/>Running, Cross-Training, HR Zones,<br/>VO2 Max, Sleep, Body,<br/>Pace, Mile Splits"]
         Plan["training_plan.py<br/>Hal Higdon Intermediate 1<br/>Karvonen HR Zones"]
     end
 
@@ -165,10 +165,10 @@ graph TD
 
 ```
 fitbit-data/
-├── main.py                  # CLI entry point (subcommands: auth, assess, plan, progress, report, calendar, dashboard)
-├── config.py                # Environment variables, API URLs, race constants
+├── main.py                  # CLI entry point (subcommands: setup, auth, assess, plan, progress, report, calendar, dashboard)
+├── config.py                # Race config loader + environment variables
 ├── utils.py                 # Shared helpers: format_pace(), KM_TO_MILES, get_week_start()
-├── requirements.txt         # requests, python-dotenv, rich, tabulate
+├── requirements.txt         # requests, python-dotenv, rich
 ├── .env                     # FITBIT_CLIENT_ID, FITBIT_CLIENT_SECRET
 ├── .fitbit_tokens.json      # OAuth tokens (auto-generated)
 ├── fitbit_cache.db          # SQLite cache (auto-generated)
@@ -181,7 +181,7 @@ fitbit-data/
 │   └── weather.py           # TCX GPS parsing → weather + reverse geocode
 │
 ├── analysis/                # Metrics computation and plan generation
-│   ├── analyzer.py          # Fitness assessment (running, rowing, HR, VO2 max, sleep, body, pace, splits)
+│   ├── analyzer.py          # Fitness assessment (running, cross-training, HR, VO2 max, sleep, body, pace, splits)
 │   └── training_plan.py     # Hal Higdon Intermediate 1 plan + Karvonen HR zones
 │
 ├── output/                  # Presentation layer
@@ -206,11 +206,11 @@ fitbit-data/
 
 ### `core/` — Data Pipeline
 
-Handles all communication with external APIs and local data persistence. The pipeline runs as: **authenticate → fetch → cache → enrich**. On first run, pulls full history back to `DATA_START_DATE` (2026-01-01). On subsequent runs, performs incremental sync from the last cached date per endpoint. If the Fitbit API rate limit (150 req/hr) is hit, a module-level `_rate_limited` flag causes all remaining endpoints to gracefully fall back to cached data.
+Handles all communication with external APIs and local data persistence. The pipeline runs as: **authenticate → fetch → cache → enrich**. On first run, pulls full history back to `DATA_START_DATE` (defaults to 20 weeks before race date, configurable in `race_config.json`). On subsequent runs, performs incremental sync from the last cached date per endpoint. If the Fitbit API rate limit (150 req/hr) is hit, a module-level `_rate_limited` flag causes all remaining endpoints to gracefully fall back to cached data.
 
 ### `analysis/` — Metrics & Planning
 
-Pure computation modules that read cached data and produce structured dicts. `analyzer.py` computes a comprehensive fitness assessment covering running stats, rowing stats, heart rate zones, VO2 max estimates, sleep quality, body composition, pace analysis, and mile splits. `training_plan.py` generates a week-by-week half marathon training schedule based on the Hal Higdon Intermediate 1 model, with heart rate zone targets calculated via the Karvonen method.
+Pure computation modules that read cached data and produce structured dicts. `analyzer.py` computes a comprehensive fitness assessment covering running stats, cross-training metrics, heart rate zones, VO2 max estimates, sleep quality, body composition, pace analysis, and mile splits. `training_plan.py` generates a week-by-week training schedule based on the Hal Higdon Intermediate 1 model, with heart rate zone targets calculated via the Karvonen method.
 
 ### `output/` — Presentation
 
@@ -218,7 +218,7 @@ Renders analysis results into user-facing formats. All modules consume either th
 
 ### `config.py` — Shared Configuration
 
-The most-imported module in the codebase (7 dependents). Centralizes environment variables (`FITBIT_CLIENT_ID`, `FITBIT_CLIENT_SECRET`), API base URLs, OAuth endpoints, race constants (Lincoln Half Marathon, May 3, 2026), and `DATA_START_DATE` which controls how far back all data lookback queries reach.
+The most-imported module in the codebase (7 dependents). Loads race goal from `race_config.json` (created by `python main.py setup`). Exports `RACE_NAME`, `RACE_DATE`, `RACE_DISTANCE_MILES`, `DATA_START_DATE`, `TARGET_TIME`, `TARGET_PACE`. Also centralizes environment variables (`FITBIT_CLIENT_ID`, `FITBIT_CLIENT_SECRET`), API base URLs, and OAuth endpoints.
 
 ### `utils.py` — Shared Utilities
 
