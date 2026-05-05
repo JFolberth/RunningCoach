@@ -44,7 +44,7 @@ Fitbit API → FitbitClient → data_fetcher → SQLite cache → analyzer → o
 - **core/cache.py** — SQLite caching layer (`fitbit_cache.db`). Every data category has its own table. A `sync_log` table tracks the last sync date per endpoint.
 - **core/data_fetcher.py** — Orchestrates all data collection. On first run, pulls full history; on subsequent runs, only fetches data since last sync. If rate-limited, sets a global `_rate_limited` flag so remaining endpoints gracefully fall back to cached data.
 - **core/weather.py** — Weather data integration for training conditions.
-- **analysis/analyzer.py** — Computes fitness metrics from raw data. Returns a dict with sections: `profile`, `body`, `running`, `cross_training`, `heart_rate`, `vo2_max`, `sleep`, `hydration`, `daily_activity`, `spo2`, `readiness`.
+- **analysis/analyzer.py** — Computes fitness metrics from raw data. Returns a dict with sections: `profile`, `body`, `running`, `cross_training`, `heart_rate`, `vo2_max`, `sleep`, `hydration`, `daily_activity`, `spo2`, `weekly_calories`, `splits`, `readiness`.
 - **analysis/training_plan.py** — Generates a week-by-week plan based on Hal Higdon Intermediate 1 model. All workouts are long-distance easy runs (no tempo/interval splits). Includes long run progression, recovery weeks, taper, and HR zone calculations (Karvonen method).
 - **output/report_generator.py** — Rich CLI display functions and Markdown report saving. All display functions follow the `_display_<section>(data)` pattern.
 - **output/calendar_view.py** — Month-by-month calendar grid of workouts using Rich tables.
