@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+.fitbit_tokens.json
+fitbit_cache.db
+race_config.json
+reports/
+*.egg-info/
+dist/
+build/
+_populate_reasoning.py
+.DS_Store
